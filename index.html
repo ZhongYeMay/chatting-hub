@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Chatting Hub</title>
+    <title>Chatting Hub Pro</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <style>
         :root {
@@ -20,93 +20,78 @@
         body { margin: 0; font-family: 'Roboto', sans-serif; background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); height: 100vh; overflow: hidden; }
 
         /* 页面切换动画 */
-        .page { 
-            position: fixed; inset: 0; display: flex; flex-direction: column; 
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s;
-            z-index: 1;
-        }
-        .page.hidden { transform: translateY(30px); opacity: 0; pointer-events: none; z-index: 0; }
+        .page { position: fixed; inset: 0; display: flex; flex-direction: column; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s; z-index: 1; }
+        .page.hidden { transform: translateY(40px); opacity: 0; pointer-events: none; z-index: 0; }
 
-        /* --- 注册登录页面 (Page 1) --- */
-        #auth-page { align-items: center; justify-content: center; background: var(--md-sys-color-surface); }
-        .auth-card {
-            background: var(--md-sys-color-surface-container);
-            padding: 40px 30px; border-radius: 28px; width: 90%; max-width: 360px;
-            text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-        }
-        .md-input {
-            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--md-sys-color-outline);
-            border-radius: 12px; padding: 16px; color: white; margin-bottom: 16px; font-size: 16px; outline: none;
-            transition: border 0.3s;
-        }
-        .md-input:focus { border-color: var(--md-sys-color-primary); }
-        .btn-large {
-            background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);
-            border: none; padding: 16px; border-radius: 100px; width: 100%; font-weight: bold; font-size: 16px;
-            cursor: pointer; margin-top: 10px;
-        }
+        /* 认证卡片 */
+        #auth-page { align-items: center; justify-content: center; }
+        .auth-card { background: var(--md-sys-color-surface-container); padding: 40px 30px; border-radius: 28px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .md-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--md-sys-color-outline); border-radius: 12px; padding: 16px; color: white; margin-bottom: 16px; font-size: 16px; outline: none; }
+        .btn-large { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); border: none; padding: 16px; border-radius: 100px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; }
 
-        /* --- 聊天主页面 (Page 2) --- */
-        #chat-page { background: var(--md-sys-color-surface); }
+        /* 聊天区 */
         header.top-bar { height: 64px; background: var(--md-sys-color-surface-container); display: flex; align-items: center; padding: 0 16px; justify-content: space-between; }
-        .chat-content { flex: 1; display: flex; overflow: hidden; }
-        .chat-main { flex: 1; display: flex; flex-direction: column; }
         #msg-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
-        
-        /* 气泡样式 (MD3) */
-        .bubble { padding: 12px 16px; border-radius: 20px; max-width: 85%; font-size: 15px; position: relative; }
+        #msg-list::-webkit-scrollbar { width: 4px; }
+        #msg-list::-webkit-scrollbar-thumb { background: var(--md-sys-color-outline); border-radius: 10px; }
+
+        /* 消息气泡 */
+        .bubble { padding: 12px 16px; border-radius: 20px; max-width: 85%; font-size: 15px; animation: pop 0.4s ease; position: relative; }
+        @keyframes pop { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
         .me { background: var(--md-sys-color-primary-container); align-self: flex-end; border-bottom-right-radius: 4px; }
         .others { background: var(--md-sys-color-surface-container); align-self: flex-start; border-bottom-left-radius: 4px; }
-        
-        /* 输入栏 */
+
+        /* 输入区 */
         .input-bar { padding: 12px 16px; display: flex; gap: 12px; align-items: center; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
         .input-pill { flex: 1; background: var(--md-sys-color-surface-container); border: none; border-radius: 28px; padding: 14px 20px; color: white; outline: none; }
-        .btn-send { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); border: none; width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
 
-        .side-nav { width: 56px; background: var(--md-sys-color-surface-container); display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 24px; }
+        /* 更新弹窗样式 */
+        .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(6px); }
+        .update-card { background: var(--md-sys-color-surface-container); width: 85%; max-width: 320px; border-radius: 28px; padding: 28px; text-align: center; border: 1px solid var(--md-sys-color-primary-container); }
+        .log-item { display: block; text-align: left; font-size: 14px; margin-bottom: 8px; opacity: 0.9; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div id="auth-page" class="page">
         <div class="auth-card">
-            <span class="material-icons-outlined" style="font-size:64px; color:var(--md-sys-color-primary)">rocket_launch</span>
-            <h1 style="font-size:24px; margin:20px 0 10px; color:var(--md-sys-color-primary)">欢迎来到 Hub</h1>
-            <p style="font-size:14px; opacity:0.6; margin-bottom:30px;">MayOS 身份认证系统</p>
-            
-            <input type="email" id="email" placeholder="电子邮箱" class="md-input">
-            <input type="password" id="password" placeholder="通行密码" class="md-input">
-            
-            <button id="auth-btn" class="btn-large">认证并进入</button>
-            <p id="auth-tip" style="font-size:12px; margin-top:15px; opacity:0.5;">未注册账号将自动创建</p>
+            <span class="material-icons-outlined" style="font-size:64px; color:var(--md-sys-color-primary)">auto_awesome</span>
+            <h1 style="font-size:24px; margin:20px 0 30px;">Chatting Hub</h1>
+            <input type="email" id="email" placeholder="输入邮箱" class="md-input">
+            <input type="password" id="password" placeholder="输入密码" class="md-input">
+            <button id="auth-btn" class="btn-large">进入系统</button>
         </div>
     </div>
 
     <div id="chat-page" class="page hidden">
         <header class="top-bar">
-            <div style="display:flex; align-items:center; gap:10px; color:var(--md-sys-color-primary)">
-                <span class="material-icons-outlined">hub</span>
-                <span style="font-weight:bold;">Chatting Hub Home</span>
+            <div style="display:flex; align-items:center; gap:8px; color:var(--md-sys-color-primary)">
+                <span class="material-icons-outlined">hub</span><b>Home 主机</b>
             </div>
-            <span id="user-display" style="font-size:12px; opacity:0.7;"></span>
+            <span id="user-display" style="font-size:12px; opacity:0.6;"></span>
         </header>
-
-        <div class="chat-content">
-            <main class="chat-main">
-                <div style="padding:10px 16px; font-size:11px; opacity:0.5; display:flex; justify-content:space-between;">
-                    <span># PUBLIC_ROOM</span>
-                    <span id="online-count">● 1 人在线</span>
+        <div style="flex:1; display:flex; overflow:hidden;">
+            <main style="flex:1; display:flex; flex-direction:column;">
+                <div style="padding:8px 16px; font-size:11px; opacity:0.4; display:flex; justify-content:space-between;">
+                    <span># GENERAL</span><span id="online-count">● 载入中</span>
                 </div>
                 <div id="msg-list"></div>
                 <div class="input-bar">
-                    <input type="text" id="msg-input" class="input-pill" placeholder="键入消息...">
-                    <button id="send-btn" class="btn-send"><span class="material-icons-outlined">send</span></button>
+                    <input type="text" id="msg-input" class="input-pill" placeholder="说点什么...">
+                    <button id="send-btn" style="background:var(--md-sys-color-primary); border:none; width:48px; height:48px; border-radius:16px; display:flex; align-items:center; justify-content:center;"><span class="material-icons-outlined">send</span></button>
                 </div>
             </main>
-            <nav class="side-nav">
-                <span class="material-icons-outlined" style="color:var(--md-sys-color-primary)">auto_awesome</span>
-                <span class="material-icons-outlined" style="opacity:0.3">settings</span>
-            </nav>
+        </div>
+    </div>
+
+    <div id="update-modal" class="modal-mask hidden">
+        <div class="update-card">
+            <span class="material-icons-outlined" style="font-size:40px; color:var(--md-sys-color-primary)">published_with_changes</span>
+            <h3 id="v-num" style="margin:15px 0 5px;">发现新版本</h3>
+            <p id="v-date" style="font-size:11px; opacity:0.5; margin-bottom:20px;"></p>
+            <div id="v-logs" style="margin-bottom:25px;"></div>
+            <button id="close-update" class="btn-large">我知道了</button>
         </div>
     </div>
 
@@ -115,6 +100,7 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // --- Firebase 配置 ---
         const firebaseConfig = {
             apiKey: "AIzaSyCNc6yYv1Tg9wBTpaRFXobubDAFzWpddrM",
             authDomain: "chats-10095.firebaseapp.com",
@@ -123,38 +109,45 @@
             messagingSenderId: "966848788239",
             appId: "1:966848788239:web:217e96f386f0af5744707a"
         };
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- 页面跳转逻辑 ---
-        function navigateToChat() {
-            document.getElementById('auth-page').classList.add('hidden');
-            document.getElementById('chat-page').classList.remove('hidden');
+        // ---  自动更新配置区域  ---
+        const LATEST_VERSION = "v1.7.0"; 
+        const UPDATE_INFO = {
+            date: "2026-05-11",
+            logs: ["新增自动更新检测模块", "优化页面平滑切换动画", "升级 MD3 气泡弹窗逻辑", "修复了滚动条底部遮挡问题"]
+        };
+
+        function handleAutoUpdate() {
+            const localV = localStorage.getItem('hub_app_version');
+            if (localV !== LATEST_VERSION) {
+                // 触发弹窗
+                document.getElementById('v-num').innerText = `${LATEST_VERSION} 更新日志`;
+                document.getElementById('v-date').innerText = `发布日期：${UPDATE_INFO.date}`;
+                document.getElementById('v-logs').innerHTML = UPDATE_INFO.logs.map(log => `<span class="log-item">● ${log}</span>`).join('');
+                document.getElementById('update-modal').classList.remove('hidden');
+            }
         }
+
+        document.getElementById('close-update').onclick = () => {
+            localStorage.setItem('hub_app_version', LATEST_VERSION); // 记录已读
+            document.getElementById('update-modal').classList.add('hidden');
+        };
 
         // --- 认证逻辑 ---
         document.getElementById('auth-btn').onclick = async () => {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
-            const tip = document.getElementById('auth-tip');
-
-            if (!email || pass.length < 6) {
-                alert("请输入正确的邮箱和至少6位密码");
-                return;
-            }
-
-            tip.innerText = "正在认证中...";
+            if(!email || pass.length < 6) return alert("账号信息不完整");
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
             } catch (e) {
-                if(confirm("账号不存在，是否以此凭证注册新身份？")){
-                    const name = prompt("你的 ID 昵称？") || "探险者";
+                if(confirm("账户不存在，是否以此信息创建？")){
+                    const name = prompt("你的 ID 昵称：") || "新成员";
                     const res = await createUserWithEmailAndPassword(auth, email, pass);
                     await updateProfile(res.user, { displayName: name });
-                } else {
-                    tip.innerText = "未注册账号将自动创建";
                 }
             }
         };
@@ -162,13 +155,15 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById('user-display').innerText = user.displayName;
-                navigateToChat(); // 成功后跳转
-                startChatSystem();
+                document.getElementById('auth-page').classList.add('hidden');
+                document.getElementById('chat-page').classList.remove('hidden');
+                handleAutoUpdate(); // 登录后检测更新
+                initChatSystem();
             }
         });
 
-        // --- 聊天系统 ---
-        function startChatSystem() {
+        // --- 聊天核心逻辑 ---
+        function initChatSystem() {
             // 消息监听
             const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
             onSnapshot(q, (snap) => {
@@ -179,47 +174,31 @@
                     const isMe = m.uid === auth.currentUser.uid;
                     const div = document.createElement('div');
                     div.className = `bubble ${isMe ? 'me' : 'others'}`;
-                    const time = m.createdAt ? m.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '...';
-                    div.innerHTML = `
-                        ${!isMe ? `<div style="font-size:10px; font-weight:bold; color:var(--md-sys-color-primary); margin-bottom:4px;">${m.sender}</div>` : ''}
-                        <div>${m.text}</div>
-                        <div style="font-size:9px; opacity:0.5; margin-top:4px; text-align:right;">${time}</div>
-                    `;
+                    const t = m.createdAt ? m.createdAt.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+                    div.innerHTML = `${!isMe ? `<b style="font-size:10px;color:var(--md-sys-color-primary)">${m.sender}</b>` : ''}
+                                     <div>${m.text}</div><div style="font-size:9px;opacity:0.4;text-align:right;">${t}</div>`;
                     list.appendChild(div);
                 });
-                setTimeout(() => { list.scrollTop = list.scrollHeight; }, 100);
+                setTimeout(() => list.scrollTop = list.scrollHeight, 100);
             });
 
-            // 在线人数心跳 (30秒打卡一次)
-            const updateStatus = () => setDoc(doc(db, "status", auth.currentUser.uid), { lastSeen: serverTimestamp() }, { merge: true });
-            updateStatus();
-            setInterval(updateStatus, 30000);
-
-            onSnapshot(collection(db, "status"), (snap) => {
-                let count = 0;
-                const now = Date.now();
-                snap.forEach(d => {
-                    if(d.data().lastSeen && (now - d.data().lastSeen.toDate().getTime() < 90000)) count++;
-                });
-                document.getElementById('online-count').innerText = `● ${count} 人在线`;
+            // 在线状态
+            const heartbeat = () => setDoc(doc(db, "status", auth.currentUser.uid), { lastSeen: serverTimestamp() }, { merge: true });
+            setInterval(heartbeat, 30000); heartbeat();
+            onSnapshot(collection(db, "status"), snap => {
+                let count = 0; snap.forEach(d => { if(d.data().lastSeen && (Date.now() - d.data().lastSeen.toDate().getTime() < 90000)) count++; });
+                document.getElementById('online-count').innerText = `● ${count} 在线`;
             });
         }
 
-        // 发送消息
-        const sendMessage = async () => {
-            const input = document.getElementById('msg-input');
-            if(!input.value.trim()) return;
-            const text = input.value;
-            input.value = '';
-            await addDoc(collection(db, "messages"), {
-                text: text,
-                sender: auth.currentUser.displayName,
-                uid: auth.currentUser.uid,
-                createdAt: serverTimestamp()
-            });
+        const send = async () => {
+            const i = document.getElementById('msg-input');
+            if(!i.value.trim()) return;
+            const text = i.value; i.value = '';
+            await addDoc(collection(db, "messages"), { text: text, sender: auth.currentUser.displayName, uid: auth.currentUser.uid, createdAt: serverTimestamp() });
         };
-        document.getElementById('send-btn').onclick = sendMessage;
-        document.getElementById('msg-input').onkeypress = (e) => { if(e.key==='Enter') sendMessage(); };
+        document.getElementById('send-btn').onclick = send;
+        document.getElementById('msg-input').onkeypress = e => { if(e.key==='Enter') send(); };
     </script>
 </body>
 </html>
